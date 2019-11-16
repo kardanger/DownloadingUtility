@@ -75,9 +75,6 @@ public class FileLoader implements Subscriber<Event>{
 
             exec.shutdown();
 
-            //TODO Terminate exec
-            //exec.awaitTermination(1, TimeUnit.DAYS);
-
             while (exec.getActiveCount()!=0){
             }
 
