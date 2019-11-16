@@ -67,7 +67,7 @@ public class FileLoader implements Subscriber<Event>{
             queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-06.zip", "/tmp/ms2007-06.zip"));
             queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-04.zip", "/tmp/ms2007-04.zip"));
 
-            ExecutorService exec = Executors.newCachedThreadPool();
+            ThreadPoolExecutor exec = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
 
             exec.submit(new Customer(queue));
             exec.submit(new Customer(queue));
@@ -76,7 +76,11 @@ public class FileLoader implements Subscriber<Event>{
             exec.shutdown();
 
             //TODO Terminate exec
-            exec.awaitTermination(1, TimeUnit.DAYS);
+            //exec.awaitTermination(1, TimeUnit.DAYS);
+
+            while (exec.getActiveCount()!=0){
+            }
+
         } catch (Exception e) {
             System.out.println("Start download error " + e.getMessage());
         }
