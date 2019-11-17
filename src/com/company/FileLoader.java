@@ -5,13 +5,8 @@ package com.company;
 
 import org.apache.commons.io.FileUtils;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -82,7 +77,7 @@ class Customer implements Runnable {
         this.queue = queue;
     }
 
-    private long downloadFile(String fileURL, List<String> localFilename){
+    private long downloadWithApacheCommons(String fileURL, List<String> localFilename){
         int CONNECT_TIMEOUT = 10000;
         int READ_TIMEOUT = 10000;
 
@@ -106,7 +101,7 @@ class Customer implements Runnable {
         }
     }
 
-    private void downloadWithApacheCommons(String fileURL, List<String> localFilename) throws IOException {
+    private void download(String fileURL, List<String> localFilename) throws IOException {
 
         String sourceFilename = localFilename.get(0).substring(localFilename.get(0).lastIndexOf('/')+1);
 
@@ -117,7 +112,7 @@ class Customer implements Runnable {
 
         long startTime = System.currentTimeMillis();
 
-        long length = downloadFile(fileURL, localFilename);
+        long length = downloadWithApacheCommons(fileURL, localFilename);
         if(length == 0) return;
 
         long stopTime = System.currentTimeMillis();
@@ -136,7 +131,7 @@ class Customer implements Runnable {
         while (!queue.isEmpty()) {
             try {
                 FileURL fileURL = queue.take();
-                downloadWithApacheCommons(fileURL.getFileURL(), fileURL.getLocalFilename());
+                download(fileURL.getFileURL(), fileURL.getLocalFilename());
             } catch (Exception e) {
                 System.out.println("Thread Running error " + e.getMessage());
             }
