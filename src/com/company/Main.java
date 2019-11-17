@@ -4,11 +4,8 @@ public class Main {
 
     public static void main(String[] args) {
 
-        
-
-        CollectionLinks links = new CollectionLinks("/tmp/links");
-
-        int numThreads = 4;
+        CollectionLinks links = new CollectionLinks(args[2], args[1]);
+        int numThreads = Integer.parseInt(args[0]);
 
         long startTime = System.currentTimeMillis();
 

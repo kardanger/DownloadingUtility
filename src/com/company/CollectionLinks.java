@@ -46,7 +46,7 @@ public class CollectionLinks {
         }
     }
 
-    CollectionLinks(String filename) {
+    CollectionLinks(String filename, String filepath) {
 
         this.collection = new HashMap<>();
 
@@ -56,9 +56,9 @@ public class CollectionLinks {
 
             for (String s : array) {
                 String[] record = s.split(" ");
-                collection.computeIfAbsent(record[0], k -> new ArrayList<>()).add(record[1]);
+                collection.computeIfAbsent(record[0], k -> new ArrayList<>()).add(filepath + "/" + record[1]);
                 collection.computeIfPresent("name", (key, value) -> {
-                    value.add(record[1]);
+                    value.add(filepath + "/" + record[1]);
                     return  value;
                 });
             }
