@@ -4,7 +4,10 @@ public class Main {
 
     public static void main(String[] args) {
 
-        CollectionLinks links = new CollectionLinks(args[2], args[1]);
+        String filepath = args[1];
+        String linksFile = args[2];
+
+        CollectionLinks links = new CollectionLinks(linksFile, filepath);
         int numThreads = Integer.parseInt(args[0]);
 
         long startTime = System.currentTimeMillis();

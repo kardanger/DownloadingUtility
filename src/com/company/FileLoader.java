@@ -41,17 +41,6 @@ public class FileLoader implements Subscriber<Event>{
 
         //TODO Load From File
         try {
-/*            queue.put(new FileURL("http://meteoweb.ru/xls/ms2008-05.zip", "/tmp/ms2008-05.zip"));
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2008-04.zip", "/tmp/ms2008-04.zip"));
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2008-03.zip", "/tmp/ms2008-03.zip"));
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2008-02.zip", "/tmp/ms2008-02.zip"));
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2008-01.zip", "/tmp/ms2008-01.zip"));
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-51.zip", "/tmp/ms2007-51.zip"));
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-50.zip", "/tmp/ms2007-50.zip"));
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-09.zip", "/tmp/ms2007-09.zip"));
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-08.zip", "/tmp/ms2007-08.zip"));
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-06.zip", "/tmp/ms2007-06.zip"));
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-04.zip", "/tmp/ms2007-04.zip"));*/
 
             for(Map.Entry<String, List<String>> entry: links.getURLs()){
                 queue.put(CollectionLinks.getURL(entry));
@@ -93,15 +82,7 @@ class Customer implements Runnable {
         this.queue = queue;
     }
 
-    private void downloadWithJavaNIO(String fileURL, List<String> localFilename) throws IOException {
-
-        URL url = new URL(fileURL);
-        synchronized (EventBus.getDefault()) {
-            EventBus.getDefault().post(new MessageEvent("File " + localFilename.get(0) + " is loading..."));
-        }
-
-        long startTime = System.currentTimeMillis();
-
+    private long downloadFile(String fileURL, List<String> localFilename){
         int CONNECT_TIMEOUT = 10000;
         int READ_TIMEOUT = 10000;
 
@@ -117,18 +98,34 @@ class Customer implements Runnable {
                 }
             }
 
+            return source.length();
+
         } catch (IOException e) {
-            System.out.println("Load " + localFilename + " error " + e.getMessage());
-            return;
+            System.out.println("Load " + fileURL + " error ");
+            return 0;
         }
+    }
+
+    private void downloadWithApacheCommons(String fileURL, List<String> localFilename) throws IOException {
+
+        String sourceFilename = localFilename.get(0).substring(localFilename.get(0).lastIndexOf('/')+1);
+
+        URL url = new URL(fileURL);
+        synchronized (EventBus.getDefault()) {
+            EventBus.getDefault().post(new MessageEvent("File " + sourceFilename + " is loading..."));
+        }
+
+        long startTime = System.currentTimeMillis();
+
+        long length = downloadFile(fileURL, localFilename);
+        if(length == 0) return;
 
         long stopTime = System.currentTimeMillis();
         long elapsedTime = stopTime - startTime;
-        long length = source.length();
 
         synchronized (EventBus.getDefault()) {
             for(String filename : localFilename){
-                EventBus.getDefault().post(new MessageEvent("File " + filename + " loaded. Elapsed time " + elapsedTime
+                EventBus.getDefault().post(new MessageEvent("File " + filename.substring(filename.lastIndexOf('/')+1) + " loaded. Elapsed time " + elapsedTime
                         + ". File size " + length));
             }
             EventBus.getDefault().post(new StatisticDataEvent(length, elapsedTime));
@@ -139,7 +136,7 @@ class Customer implements Runnable {
         while (!queue.isEmpty()) {
             try {
                 FileURL fileURL = queue.take();
-                downloadWithJavaNIO(fileURL.getFileURL(), fileURL.getLocalFilename());
+                downloadWithApacheCommons(fileURL.getFileURL(), fileURL.getLocalFilename());
             } catch (Exception e) {
                 System.out.println("Thread Running error " + e.getMessage());
             }
