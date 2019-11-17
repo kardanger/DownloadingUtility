@@ -3,6 +3,7 @@
 
 package com.company;
 
+import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,27 +11,10 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
-
-/**
- * Класс URL загружаемого файла
- */
-class FileURL {
-    private final String fileURL;
-    private final String localFilename;
-
-    public String getFileURL() {
-        return fileURL;
-    }
-    public String getLocalFilename() {
-        return localFilename;
-    }
-
-    public FileURL(String fileURL, String localFilename) {
-        this.fileURL = fileURL;
-        this.localFilename = localFilename;
-    }
-}
 
 /**
  * Класс загрузки файлов в несколько потоков
@@ -38,6 +22,7 @@ class FileURL {
 public class FileLoader implements Subscriber<Event>{
     private int totalTime;
     private int totalFileSize;
+    private CollectionLinks links;
 
     public int getTotalTime() {
         return totalTime;
@@ -47,7 +32,8 @@ public class FileLoader implements Subscriber<Event>{
         return totalFileSize;
     }
 
-    public FileLoader() {
+    public FileLoader(CollectionLinks links, int numThreads) {
+        this.links = links;
         final BlockingQueue<FileURL> queue = new ArrayBlockingQueue<>(11);
 
         EventBus.getDefault().register(this, MessageEvent.class);
@@ -55,7 +41,7 @@ public class FileLoader implements Subscriber<Event>{
 
         //TODO Load From File
         try {
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2008-05.zip", "/tmp/ms2008-05.zip"));
+/*            queue.put(new FileURL("http://meteoweb.ru/xls/ms2008-05.zip", "/tmp/ms2008-05.zip"));
             queue.put(new FileURL("http://meteoweb.ru/xls/ms2008-04.zip", "/tmp/ms2008-04.zip"));
             queue.put(new FileURL("http://meteoweb.ru/xls/ms2008-03.zip", "/tmp/ms2008-03.zip"));
             queue.put(new FileURL("http://meteoweb.ru/xls/ms2008-02.zip", "/tmp/ms2008-02.zip"));
@@ -65,13 +51,17 @@ public class FileLoader implements Subscriber<Event>{
             queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-09.zip", "/tmp/ms2007-09.zip"));
             queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-08.zip", "/tmp/ms2007-08.zip"));
             queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-06.zip", "/tmp/ms2007-06.zip"));
-            queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-04.zip", "/tmp/ms2007-04.zip"));
+            queue.put(new FileURL("http://meteoweb.ru/xls/ms2007-04.zip", "/tmp/ms2007-04.zip"));*/
 
-            ThreadPoolExecutor exec = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
+            for(Map.Entry<String, List<String>> entry: links.getURLs()){
+                queue.put(CollectionLinks.getURL(entry));
+            }
 
-            exec.submit(new Customer(queue));
-            exec.submit(new Customer(queue));
-            exec.submit(new Customer(queue));
+            ThreadPoolExecutor exec = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
+
+            for(int i =0; i < numThreads; ++i){
+                exec.submit(new Customer(queue));
+            }
 
             exec.shutdown();
 
@@ -103,20 +93,30 @@ class Customer implements Runnable {
         this.queue = queue;
     }
 
-    private void downloadWithJavaNIO(String fileURL, String localFilename) throws IOException {
+    private void downloadWithJavaNIO(String fileURL, List<String> localFilename) throws IOException {
 
         URL url = new URL(fileURL);
         synchronized (EventBus.getDefault()) {
-            EventBus.getDefault().post(new MessageEvent("File " + localFilename + " is loading..."));
+            EventBus.getDefault().post(new MessageEvent("File " + localFilename.get(0) + " is loading..."));
         }
 
         long startTime = System.currentTimeMillis();
 
-        try (ReadableByteChannel readableByteChannel = Channels.newChannel(url.openStream());
-             //TODO Save To File List
-             FileOutputStream fileOutputStream = new FileOutputStream(localFilename);
-             FileChannel fileChannel = fileOutputStream.getChannel()) {
-             fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+        int CONNECT_TIMEOUT = 10000;
+        int READ_TIMEOUT = 10000;
+
+        File source= new File(localFilename.get(0));
+
+        try {
+            FileUtils.copyURLToFile(new URL(fileURL), source, CONNECT_TIMEOUT, READ_TIMEOUT);
+
+            if(localFilename.size() > 1){
+                for (int i = 1; i<localFilename.size(); ++i){
+                    File destination = new File(localFilename.get(i));
+                    FileUtils.copyFile(source, destination);
+                }
+            }
+
         } catch (IOException e) {
             System.out.println("Load " + localFilename + " error " + e.getMessage());
             return;
@@ -124,13 +124,13 @@ class Customer implements Runnable {
 
         long stopTime = System.currentTimeMillis();
         long elapsedTime = stopTime - startTime;
-
-        File f = new File(localFilename);
-        long length = f.length();
+        long length = source.length();
 
         synchronized (EventBus.getDefault()) {
-            EventBus.getDefault().post(new MessageEvent("File " + localFilename + " loaded. Elapsed time " + elapsedTime
-                    + ". File size " + length));
+            for(String filename : localFilename){
+                EventBus.getDefault().post(new MessageEvent("File " + filename + " loaded. Elapsed time " + elapsedTime
+                        + ". File size " + length));
+            }
             EventBus.getDefault().post(new StatisticDataEvent(length, elapsedTime));
         }
     }
