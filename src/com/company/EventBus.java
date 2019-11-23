@@ -30,9 +30,10 @@ class MessageEvent implements Event {
  */
 class StatisticDataEvent implements Event{
 
-    public StatisticDataEvent(long size, long time){
+    public StatisticDataEvent(long size, long time, long countFiles){
         this.size = size;
         this.time = time;
+        this.countFiles = countFiles;
     }
 
     public long getTime(){
@@ -43,8 +44,11 @@ class StatisticDataEvent implements Event{
         return size;
     }
 
+    public long getCountFiles() { return countFiles; }
+
     private final long time;
     private final long size;
+    private final long countFiles;
 }
 /**
  * Интерфейс класса "слушателя" событий

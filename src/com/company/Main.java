@@ -17,7 +17,8 @@ public class Main {
         long stopTime = System.currentTimeMillis();
         long elapsedTime = stopTime - startTime;
 
-        System.out.println("Total elapsed time, ms " + elapsedTime);
-        System.out.println(loader.getTotalFileSize() + " bytes loaded");
+        System.out.println("Загружено: " + loader.getTotalCountFiles() + " файлов, " + loader.getTotalFileSize() + " bytes loaded");
+        System.out.println("Время: " + elapsedTime);
+        System.out.println("Средняя скорость: " + loader.getLoadedFileSize()/elapsedTime);
     }
 }
