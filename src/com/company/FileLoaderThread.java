@@ -70,7 +70,7 @@ class FileLoaderThread implements Runnable {
 
         synchronized (EventBus.getDefault()) {
             for(String filename : localFilename){
-                EventBus.getDefault().post(new MessageEvent("Файл " + filename.substring(filename.lastIndexOf('/')+1) + " загружен: " + length + " за " + elapsedTime));
+                EventBus.getDefault().post(new MessageEvent("Файл " + filename.substring(filename.lastIndexOf('/')+1) + " загружен: " + length/1000000.0 + " MB" + " за " + elapsedTime));
                 ++countFiles;
             }
             EventBus.getDefault().post(new StatisticDataEvent(length, elapsedTime, countFiles));
