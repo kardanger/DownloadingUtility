@@ -1,8 +1,16 @@
 package com.company;
 
+import java.text.MessageFormat;
+
 public class Main {
 
     public static void main(String[] args) {
+
+        Formatter.getInstance().addWord("файл","файла","файлов");
+        Formatter.getInstance().addWord("минуту","минуты","минут");
+        Formatter.getInstance().addWord("минута","минуты","минут");
+        Formatter.getInstance().addWord("секунду","секунды","секунд");
+        Formatter.getInstance().addWord("секунда","секунды","секунд");
 
         String filepath = args[1];
         String linksFile = args[2];
@@ -17,15 +25,11 @@ public class Main {
         long stopTime = System.currentTimeMillis();
         long elapsedTime = stopTime - startTime;
 
-        Formatter.getInstance().addWord("файл","файла","файлов");
-        Formatter.getInstance().addWord("минуту","минуты","минут");
-        Formatter.getInstance().addWord("секунду","секунды","секунд");
-
         double seconds = elapsedTime/1000.0;
         int minutes = (int)seconds/60;
 
-        System.out.println("Загружено: " + loader.getTotalCountFiles() + " " + Formatter.getInstance().plurals(loader.getTotalCountFiles(), "файл") + ", " + loader.getTotalFileSize()/1024.0/1024.0 + " MB");
-        System.out.println("Время: " + minutes + " " +  Formatter.getInstance().plurals((int)minutes, "минуту")  + " " +  seconds  + " " + Formatter.getInstance().plurals((int)seconds, "секунду"));
-        System.out.println("Средняя скорость: " + loader.getLoadedFileSize()*8/1000000.0/seconds + " kb/s");
+        System.out.println(Formatter.getFilesString(loader.getTotalCountFiles(), loader.getTotalFileSize()));
+        System.out.println(Formatter.getTimeString(minutes, seconds));
+        System.out.println(Formatter.getLoadAverageSpeed(loader.getLoadedFileSize(), seconds));
     }
 }

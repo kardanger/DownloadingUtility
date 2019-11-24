@@ -11,12 +11,12 @@ import java.util.concurrent.*;
  */
 public class FileLoader implements Subscriber<Event>{
     private int totalTime;
-    private int totalFileSize;
+    private long totalFileSize;
     private int totalCountFiles;
-    private int loadedFileSize;
+    private long loadedFileSize;
     private CollectionLinks links;
 
-    public int getLoadedFileSize() {
+    public long getLoadedFileSize() {
         return loadedFileSize;
     }
 
@@ -28,7 +28,7 @@ public class FileLoader implements Subscriber<Event>{
         return totalTime;
     }
 
-    public int getTotalFileSize() {
+    public long getTotalFileSize() {
         return totalFileSize;
     }
 
