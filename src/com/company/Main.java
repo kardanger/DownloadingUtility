@@ -1,3 +1,5 @@
+//Главный модуль программы
+
 package com.company;
 
 import java.text.MessageFormat;
@@ -5,13 +7,6 @@ import java.text.MessageFormat;
 public class Main {
 
     public static void main(String[] args) {
-
-        Formatter.getInstance().addWord("файл","файла","файлов");
-        Formatter.getInstance().addWord("минуту","минуты","минут");
-        Formatter.getInstance().addWord("минута","минуты","минут");
-        Formatter.getInstance().addWord("секунду","секунды","секунд");
-        Formatter.getInstance().addWord("секунда","секунды","секунд");
-
         String filepath = args[1];
         String linksFile = args[2];
 
